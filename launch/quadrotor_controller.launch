@@ -1,0 +1,14 @@
+<launch>
+
+    <!-- <include file="$(find vrpn_client_ros)/launch/sample.launch" /> -->
+    <!-- <include file="$(find mavros)/launch/px4.launch" /> -->
+
+    <node pkg="quarotor_feedback_controller" type="quarotor_feedback_controller1" name="vehicle1" output="screen">
+        <rosparam file="$(find quarotor_feedback_controller)/config/param.yaml" command="load"/>
+    </node>
+
+    <node pkg="quarotor_feedback_controller" type="quarotor_feedback_controller2" name="vehicle2" output="screen">
+        <rosparam file="$(find quarotor_feedback_controller)/config/param.yaml" command="load"/>
+    </node>
+
+</launch>

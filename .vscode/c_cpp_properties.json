@@ -1,0 +1,24 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/kevinchen/catkin_ws/devel/include/**",
+        "/opt/ros/noetic/include/**",
+        "/home/kevinchen/catkin_ws/src/Uwb_Location/include/**",
+        "/home/kevinchen/quadrotor_feedback/src/quarotor_feedback_controller-betaflight_imav/include/**",
+        "/home/kevinchen/catkin_ws/src/serial/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-arm64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}
