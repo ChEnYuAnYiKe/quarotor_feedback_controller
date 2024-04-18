@@ -51,6 +51,8 @@ public:
         ros::Subscriber wrapper_vrpn_sub_;
         ros::Subscriber wrapper_fused_sub_;
         ros::Subscriber wrapper_velocity_sub_;
+        ros::Subscriber wrapper_velocity_filter_sub_;
+        ros::Subscriber wrapper_attitude_sub_;
         ros::Subscriber wrapper_status_sub;
         ros::Subscriber time_sync_sub1, time_sync_sub2, time_sync_sub3, time_sync_sub4, time_sync_sub5;
         ros::Subscriber fly_time_sub;
@@ -102,9 +104,13 @@ public:
     void visualCallback(const geometry_msgs::PoseStamped::ConstPtr &msg);
 //    void visualCallback(const nav_msgs::Odometry::ConstPtr &msg);
 
-    void fused_pathCallback(const nav_msgs::Path::ConstPtr &msg);
+    void fused_pathCallback(const geometry_msgs::PoseStamped::ConstPtr &msg);
 
     void velocityCallback(const geometry_msgs::TwistStamped::ConstPtr &msg);
+
+    void velocityFilterCallback(const geometry_msgs::TwistStamped::ConstPtr &msg);
+
+    void attitudeCallback(const sensor_msgs::Imu::ConstPtr &msg);
 
     void accCallback(const geometry_msgs::TwistStamped::ConstPtr &msg);
 

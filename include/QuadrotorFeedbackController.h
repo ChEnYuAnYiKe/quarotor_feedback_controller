@@ -18,6 +18,7 @@
 #include <Eigen/Dense>
 #include "ParamLoad.h"
 
+#include <sensor_msgs/Imu.h>
 
 #define LOOP_FREQUENCY 200
 #define PI 3.1415
