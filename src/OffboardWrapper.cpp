@@ -156,42 +156,30 @@ void OffboardWrapper::subscriber() {
                                                                        &OffboardWrapper::stateCallback,
                                                                        this);
     // in real
-    m_Subscriber.wrapper_fused_sub_ = nh.subscribe<geometry_msgs::PoseStamped>("/position_filter",
-                                                    50,
-                                                    &OffboardWrapper::fused_pathCallback,
-                                                    this);     
-    m_Subscriber.wrapper_attitude_sub_ = nh.subscribe<sensor_msgs::Imu>("/mavros/imu/data",
-                                                    50,
-                                                    &OffboardWrapper::attitudeCallback,
-                                                    this);
-    m_Subscriber.wrapper_velocity_filter_sub_ = nh.subscribe<geometry_msgs::TwistStamped>("/velocity_filter",
-                                                    50,
-                                                    &OffboardWrapper::velocityFilterCallback,
-                                                    this);
-
      if(uav_id == ""){
-        m_Subscriber.wrapper_vrpn_sub_ = nh.subscribe<geometry_msgs::PoseStamped>("/vrpn_client_node/cyy/pose",
-                                                       50,
+        m_Subscriber.wrapper_vrpn_sub_ = nh.subscribe<geometry_msgs::PoseStamped>("vrpn_client_node/cyy/pose",
+                                                       10,
                                                        &OffboardWrapper::visualCallback,
                                                        this);
     }
-    // else if(uav_id == "/uav2"){
-    //     m_Subscriber.wrapper_vrpn_sub_ = nh.subscribe<geometry_msgs::PoseStamped>("vrpn_client_node/jiahao2/pose",
-    //                                                    50,
-    //                                                    &OffboardWrapper::visualCallback,
-    //                                                    this);
-    // }
+    else if(uav_id == "/uav2"){
+        m_Subscriber.wrapper_vrpn_sub_ = nh.subscribe<geometry_msgs::PoseStamped>("vrpn_client_node/jiahao2/pose",
+                                                       10,
+                                                       &OffboardWrapper::visualCallback,
+                                                       this);
+    }
     // in simulator
+
     m_Subscriber.wrapper_velocity_sub_ = nh.subscribe<geometry_msgs::TwistStamped>(uav_id + "/outer_velocity_vrpn",
-                                                                                   50,
+                                                                                   10,
                                                                                    &OffboardWrapper::velocityCallback,
                                                                                    this);
-    m_Subscriber.wrapper_acc_sub_ = nh.subscribe<geometry_msgs::TwistStamped>(uav_id + "/outer_acc",
-                                                                              50,
+    m_Subscriber.wrapper_acc_sub_ = nh.subscribe<geometry_msgs::TwistStamped>(uav_id + "/outer_acc_vrpn",
+                                                                              10,
                                                                               &OffboardWrapper::accCallback,
                                                                               this);
     m_Subscriber.wrapper_rc_state_sub_ = nh.subscribe<mavros_msgs::VFR_HUD>(uav_id + "/mavros/vfr_hud",
-                                                                            50,
+                                                                            10,
                                                                             &OffboardWrapper::rc_state_Callback,
                                                                             this);
     m_Subscriber.time_sync_sub1 = nh.subscribe<std_msgs::Bool>("offb1_node/is_ok", 10,
@@ -296,55 +284,24 @@ void OffboardWrapper::velocityCallback(const geometry_msgs::TwistStamped::ConstP
     Eigen::Vector3d cur_velocity(wrapper_current_velo.twist.linear.x,
                                  wrapper_current_velo.twist.linear.y,
                                  wrapper_current_velo.twist.linear.z);
-    // wrap_data.wrapper_current_velocity_(2) = wrapper_current_velo.twist.linear.z;
     wrap_data.wrapper_current_velocity_ = cur_velocity;
-}
-
-void OffboardWrapper::velocityFilterCallback(const geometry_msgs::TwistStamped::ConstPtr &msg) {
-    geometry_msgs::TwistStamped wrapper_current_velo_filter;
-    wrapper_current_velo_filter = *msg;
-
-    // wrap_data.wrapper_current_velocity_(0) = wrapper_current_velo_filter.twist.linear.x;
-    // wrap_data.wrapper_current_velocity_(1) = wrapper_current_velo_filter.twist.linear.y;
-}
-
-void OffboardWrapper::attitudeCallback(const sensor_msgs::Imu::ConstPtr &msg) {
-    sensor_msgs::Imu current_imu_status = *msg;
-    tf::Quaternion iq;
-    Eigen::Vector3d current_attitude_store2;
-
-    tf::quaternionMsgToTF(current_imu_status.orientation, iq);
-    // wrap_data.wrapper_current_orientation(0) = current_imu_status.orientation.x;
-    // wrap_data.wrapper_current_orientation(1) = current_imu_status.orientation.y;
-    // wrap_data.wrapper_current_orientation(2) = current_imu_status.orientation.z;
-    // wrap_data.wrapper_current_orientation(3) = current_imu_status.orientation.w;
-    // 坐标变换
-    tf::Matrix3x3(iq).getRPY(current_attitude_store2[0],
-                             current_attitude_store2[1],
-                             current_attitude_store2[2]);
-
 }
 
 void OffboardWrapper::visualCallback(const geometry_msgs::PoseStamped::ConstPtr &msg) {
     geometry_msgs::PoseStamped wrapper_current_vrpn_ = *msg;
-
+    tf::Quaternion rq;
     Vector3d cur_position_(wrapper_current_vrpn_.pose.position.x,
                            wrapper_current_vrpn_.pose.position.y,
                            wrapper_current_vrpn_.pose.position.z);
-
-    wrap_data.wrapper_current_position_ = cur_position_;
-    
-    // wrap_data.wrapper_current_position_(2) = wrapper_current_vrpn_.pose.position.z;
-
     // Vector3d cur_velocity_;
     // cur_velosity_ = (cur_position_ - wrap_data.wrapper_last_position_) / (ros::Time::now() - wrap_data.last_v_time).toNSec();
     // wrap_data.last_v_time = ros::Time::now();
     // wrap_data.wrapper_last_position_ = cur_position_;
     // wrap_data.wrapper_current_velocity_ = cur_velosity_;
     // std::cout << (ros::Time::now() - wrap_data.last_v_time).toNSec() << std::endl;
-    Eigen::Vector3d current_attitude_store1;
 
-    tf::Quaternion rq; 
+    wrap_data.wrapper_current_position_ = cur_position_;
+
     tf::quaternionMsgToTF(wrapper_current_vrpn_.pose.orientation, rq);
     wrap_data.wrapper_current_orientation(0) = wrapper_current_vrpn_.pose.orientation.x;
     wrap_data.wrapper_current_orientation(1) = wrapper_current_vrpn_.pose.orientation.y;
@@ -354,21 +311,9 @@ void OffboardWrapper::visualCallback(const geometry_msgs::PoseStamped::ConstPtr 
                              wrap_data.wrapper_current_attitude_[1],
                              wrap_data.wrapper_current_attitude_[2]);
 
-
-    // tf::Matrix3x3(rq).getRPY(wrap_data.wrapper_current_attitude_[0],
-    //                          wrap_data.wrapper_current_attitude_[1],
-    //                          wrap_data.wrapper_current_attitude_[2]);
-
     // geometry_msgs::PoseStamped wrapper_vision_pos_ = wrapper_current_vrpn_;
     // wrapper_vision_pos_.header.stamp = ros::Time::now();
     // m_Publisher.wrapper_vision_pos_pub_.publish(wrapper_vision_pos_);
-}
-
-void OffboardWrapper::fused_pathCallback(const geometry_msgs::PoseStamped::ConstPtr &msg) {
-    geometry_msgs::PoseStamped wrapper_current_filter_pos_ = *msg;
-
-    // wrap_data.wrapper_current_position_(0) = wrapper_current_filter_pos_.pose.position.x;
-    // wrap_data.wrapper_current_position_(1) = wrapper_current_filter_pos_.pose.position.y;
 }
 
 void OffboardWrapper::accCallback(const geometry_msgs::TwistStamped::ConstPtr &msg) {
