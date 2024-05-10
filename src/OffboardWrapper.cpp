@@ -32,6 +32,11 @@ OffboardWrapper::OffboardWrapper(geometry_msgs::PoseStamped position_setpoint,ge
     }
     m_Publisher.draw_ref_pub = nh.advertise<geometry_msgs::PoseStamped>(node_id + "/ref_point", 10);
     m_Publisher.draw_fly_pub = nh.advertise<geometry_msgs::PoseStamped>(node_id + "/fly_point", 10);
+    
+    // debug
+    m_Publisher.atti_cmd_kp_pub = nh.advertise<geometry_msgs::Vector3Stamped>(node_id + "/attitude_cmd_kp", 10);
+    m_Publisher.atti_cmd_ki_pub = nh.advertise<geometry_msgs::Vector3Stamped>(node_id + "/attitude_cmd_ki", 10);
+    m_Publisher.atti_cmd_kd_pub = nh.advertise<geometry_msgs::Vector3Stamped>(node_id + "/attitude_cmd_kd", 10);
 
     // subscriber();
     subscriber();
@@ -133,6 +138,11 @@ void OffboardWrapper::topicPublish() {
     m_Publisher.path_ref_pub.publish(wrap_data.path_ref);
     m_Publisher.path_fly_pub.publish(wrap_data.path_fly);
 
+    //debug
+    m_Publisher.atti_cmd_kp_pub.publish(wrap_data.attitude_cmd_kp_);
+    m_Publisher.atti_cmd_ki_pub.publish(wrap_data.attitude_cmd_ki_);
+    m_Publisher.atti_cmd_kd_pub.publish(wrap_data.attitude_cmd_kd_);
+
     if (time_sync_flag == 1) {
         wrap_data.is_ok_.data = 1;
         m_Publisher.time_sync_pub.publish(wrap_data.is_ok_);
@@ -155,6 +165,20 @@ void OffboardWrapper::subscriber() {
                                                                        10,
                                                                        &OffboardWrapper::stateCallback,
                                                                        this);
+    // in uwb-position
+    m_Subscriber.wrapper_attitude_sub_ = nh.subscribe<sensor_msgs::Imu>("/mavros/imu/data",
+                                                    10,
+                                                    &OffboardWrapper::attitudeCallback,
+                                                    this);
+    m_Subscriber.wrapper_position_filtered_sub_ = nh.subscribe<geometry_msgs::PoseStamped>("/position_filter",
+                                                    10,
+                                                    &OffboardWrapper::positionfilteredCallback,
+                                                    this);      
+    m_Subscriber.wrapper_velocity_filtered_sub_ = nh.subscribe<geometry_msgs::TwistStamped>("/velocity_filter",
+                                                    10,
+                                                    &OffboardWrapper::velocityfilteredCallback,
+                                                    this);                              
+
     // in real
      if(uav_id == ""){
         m_Subscriber.wrapper_vrpn_sub_ = nh.subscribe<geometry_msgs::PoseStamped>("vrpn_client_node/cyy/pose",
@@ -170,11 +194,11 @@ void OffboardWrapper::subscriber() {
     }
     // in simulator
 
-    m_Subscriber.wrapper_velocity_sub_ = nh.subscribe<geometry_msgs::TwistStamped>(uav_id + "/outer_velocity_vrpn",
+    m_Subscriber.wrapper_velocity_sub_ = nh.subscribe<geometry_msgs::TwistStamped>(uav_id + "/outer_velocity",
                                                                                    10,
                                                                                    &OffboardWrapper::velocityCallback,
                                                                                    this);
-    m_Subscriber.wrapper_acc_sub_ = nh.subscribe<geometry_msgs::TwistStamped>(uav_id + "/outer_acc_vrpn",
+    m_Subscriber.wrapper_acc_sub_ = nh.subscribe<geometry_msgs::TwistStamped>(uav_id + "/outer_acc",
                                                                               10,
                                                                               &OffboardWrapper::accCallback,
                                                                               this);
@@ -284,15 +308,28 @@ void OffboardWrapper::velocityCallback(const geometry_msgs::TwistStamped::ConstP
     Eigen::Vector3d cur_velocity(wrapper_current_velo.twist.linear.x,
                                  wrapper_current_velo.twist.linear.y,
                                  wrapper_current_velo.twist.linear.z);
-    wrap_data.wrapper_current_velocity_ = cur_velocity;
+    wrap_data.wrapper_current_velocity_[2] = cur_velocity[2];
+}
+
+void OffboardWrapper::velocityfilteredCallback(const geometry_msgs::TwistStamped::ConstPtr &msg) {
+    geometry_msgs::TwistStamped wrapper_current_velo_filtered;
+    wrapper_current_velo_filtered = *msg;
+    Eigen::Vector3d cur_velocity_filtered(wrapper_current_velo_filtered.twist.linear.x,
+                                          wrapper_current_velo_filtered.twist.linear.y,
+                                          wrapper_current_velo_filtered.twist.linear.z);
+
+    wrap_data.wrapper_current_velocity_[0] = cur_velocity_filtered[0];
+    wrap_data.wrapper_current_velocity_[1] = cur_velocity_filtered[1];
+
+    // wrap_data.wrapper_current_velocity_ = cur_velocity_filtered;
 }
 
 void OffboardWrapper::visualCallback(const geometry_msgs::PoseStamped::ConstPtr &msg) {
     geometry_msgs::PoseStamped wrapper_current_vrpn_ = *msg;
     tf::Quaternion rq;
-    Vector3d cur_position_(wrapper_current_vrpn_.pose.position.x,
-                           wrapper_current_vrpn_.pose.position.y,
-                           wrapper_current_vrpn_.pose.position.z);
+    Eigen::Vector3d cur_position_(wrapper_current_vrpn_.pose.position.x,
+                                  wrapper_current_vrpn_.pose.position.y,
+                                  wrapper_current_vrpn_.pose.position.z);
     // Vector3d cur_velocity_;
     // cur_velosity_ = (cur_position_ - wrap_data.wrapper_last_position_) / (ros::Time::now() - wrap_data.last_v_time).toNSec();
     // wrap_data.last_v_time = ros::Time::now();
@@ -300,20 +337,46 @@ void OffboardWrapper::visualCallback(const geometry_msgs::PoseStamped::ConstPtr 
     // wrap_data.wrapper_current_velocity_ = cur_velosity_;
     // std::cout << (ros::Time::now() - wrap_data.last_v_time).toNSec() << std::endl;
 
-    wrap_data.wrapper_current_position_ = cur_position_;
+    // wrap_data.wrapper_current_position_ = cur_position_;
+    wrap_data.wrapper_current_position_[2] = cur_position_[2];
 
+    Eigen::Vector3d current_attitude_store1;
     tf::quaternionMsgToTF(wrapper_current_vrpn_.pose.orientation, rq);
     wrap_data.wrapper_current_orientation(0) = wrapper_current_vrpn_.pose.orientation.x;
     wrap_data.wrapper_current_orientation(1) = wrapper_current_vrpn_.pose.orientation.y;
     wrap_data.wrapper_current_orientation(2) = wrapper_current_vrpn_.pose.orientation.z;
     wrap_data.wrapper_current_orientation(3) = wrapper_current_vrpn_.pose.orientation.w;
-    tf::Matrix3x3(rq).getRPY(wrap_data.wrapper_current_attitude_[0],
-                             wrap_data.wrapper_current_attitude_[1],
+    tf::Matrix3x3(rq).getRPY(current_attitude_store1[0],
+                             current_attitude_store1[1],
                              wrap_data.wrapper_current_attitude_[2]);
 
     // geometry_msgs::PoseStamped wrapper_vision_pos_ = wrapper_current_vrpn_;
     // wrapper_vision_pos_.header.stamp = ros::Time::now();
     // m_Publisher.wrapper_vision_pos_pub_.publish(wrapper_vision_pos_);
+}
+
+void OffboardWrapper::positionfilteredCallback(const geometry_msgs::PoseStamped::ConstPtr &msg) {
+    geometry_msgs::PoseStamped wrapper_current_pos_filtered_ = *msg;
+
+    wrap_data.wrapper_current_position_[0] = wrapper_current_pos_filtered_.pose.position.x;
+    wrap_data.wrapper_current_position_[1] = wrapper_current_pos_filtered_.pose.position.y;
+}
+
+void OffboardWrapper::attitudeCallback(const sensor_msgs::Imu::ConstPtr &msg) {
+    sensor_msgs::Imu current_imu_status = *msg;
+    tf::Quaternion iq;
+    Eigen::Vector3d current_attitude_store2;
+
+    tf::quaternionMsgToTF(current_imu_status.orientation, iq);
+    // wrap_data.wrapper_current_orientation(0) = current_imu_status.orientation.x;
+    // wrap_data.wrapper_current_orientation(1) = current_imu_status.orientation.y;
+    // wrap_data.wrapper_current_orientation(2) = current_imu_status.orientation.z;
+    // wrap_data.wrapper_current_orientation(3) = current_imu_status.orientation.w;
+    // 坐标变换
+    tf::Matrix3x3(iq).getRPY(wrap_data.wrapper_current_attitude_[0],
+                             wrap_data.wrapper_current_attitude_[1],
+                             current_attitude_store2[2]);
+
 }
 
 void OffboardWrapper::accCallback(const geometry_msgs::TwistStamped::ConstPtr &msg) {

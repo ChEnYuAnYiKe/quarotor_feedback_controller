@@ -45,6 +45,7 @@ struct DataCentre {
     geometry_msgs::PoseStamped pub_setpoint_position_;
     geometry_msgs::TwistStamped pub_setpoint_velocity_;
     geometry_msgs::Vector3Stamped pub_setpoint_attitude_, pub_euler_attitude_, pub_new_velocity;
+    geometry_msgs::Vector3Stamped attitude_cmd_kp_, attitude_cmd_ki_, attitude_cmd_kd_;
     geometry_msgs::PoseStamped ref_path_point, fly_path_point;
     nav_msgs::Path path_ref, path_fly;
     std_msgs::Bool is_ok_;
@@ -75,6 +76,8 @@ private:
 
     Eigen::Vector3d current_position_, current_velocity_, current_attitude_;
     Eigen::Vector3d position_error_sum_, velocity_error_sum_;
+    Eigen::Vector3d position_last_error_, position_diff_;
+    Eigen::Vector3d velocity_last_error_, velocity_diff_;
 
 public:
     struct DataCentre *data_ptr;

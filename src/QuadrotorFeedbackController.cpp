@@ -15,31 +15,29 @@ QuadrotorFeedbackController::QuadrotorFeedbackController(geometry_msgs::PoseStam
     eval_ptr_ = 0;
 
     // hover PID params init
-    kp_hover_x_ = 1.4;
-    kp_hover_y_ = 1.4;
+    kp_hover_x_ = 0.21;
+    kp_hover_y_ = 0.21;
     kp_hover_z_ = 1.1;
-    kp_hover_vx_ = 0.22;
-    kp_hover_vy_ = -0.22;
+
+    ki_hover_x_ = 0.01;
+    ki_hover_y_ = 0.01;
+    ki_hover_z_ = 0.02;
+
+    kd_hover_x_ = 0.037;
+    kd_hover_y_ = 0.037;
+    kd_hover_z_ = 0;     
+
+
+    kp_hover_vx_ = 0.065;
+    kp_hover_vy_ = -0.062;
     kp_hover_vz_ = 0.07;
 
-    // ki_hover_x_ = 0;
-    // ki_hover_y_ = 0;
-    // ki_hover_z_ = 0;
-    // ki_hover_vx_ = 0;
-    // ki_hover_vy_ = 0;
-    // ki_hover_vz_ = 0;
-    ki_hover_x_ = 0.05;
-    ki_hover_y_ = 0;
-    ki_hover_z_ = 0.02;
-    ki_hover_vx_ = 0.1;
-    ki_hover_vy_ = -0.1;
+    ki_hover_vx_ = 0.007;
+    ki_hover_vy_ = -0.005;
     ki_hover_vz_ = 0.1;
 
-    kd_hover_x_ = 0;
-    kd_hover_y_ = 0;
-    kd_hover_z_ = 0;
-    kd_hover_vx_ = 0;
-    kd_hover_vy_ = 0;
+    kd_hover_vx_ = 0.022;
+    kd_hover_vy_ = 0.024;
     kd_hover_vz_ = 0;
 }
 
@@ -73,16 +71,16 @@ void QuadrotorFeedbackController::positionControlFeedback() {
     // }
 
     double position_i_x_ = ki_hover_x_use * position_error_sum_[0];
-    if (position_i_x_ > 5)
-        position_i_x_ = 5;
-    if (position_i_x_ < -5)
-        position_i_x_ = -5;
+    if (position_i_x_ > 4)
+        position_i_x_ = 4;
+    if (position_i_x_ < -4)
+        position_i_x_ = -4;
 
     double position_i_y_ = ki_hover_y_use * position_error_sum_[1];
-    if (position_i_y_ > 5)
-        position_i_y_ = 5;
-    if (position_i_y_ < -5)
-        position_i_y_ = -5;
+    if (position_i_y_ > 4)
+        position_i_y_ = 4;
+    if (position_i_y_ < -4)
+        position_i_y_ = -4;
 
     double position_i_z_ = ki_hover_z_use * position_error_sum_[2];
     if (position_i_z_ > 10)
@@ -90,12 +88,16 @@ void QuadrotorFeedbackController::positionControlFeedback() {
     if (position_i_z_ < -10)
         position_i_z_ = -10;
 
-    velocity_setpoint_.twist.linear.x = kp_hover_x_ * position_error_[0] + position_i_x_;
-    velocity_setpoint_.twist.linear.y = kp_hover_y_ * position_error_[1] + position_i_y_;
-    velocity_setpoint_.twist.linear.z = kp_hover_z_ * position_error_[2] + position_i_z_;
-    // velocity_setpoint_.twist.linear.x = 1;
-    // velocity_setpoint_.twist.linear.y = 0.5;
-    // velocity_setpoint_.twist.linear.z = 0.2;
+    position_diff_ = position_error_ - position_last_error_;
+    position_last_error_ = position_error_;
+
+    velocity_setpoint_.twist.linear.x = kp_hover_x_ * position_error_[0] + position_i_x_ + kd_hover_x_ * position_diff_[0];
+    velocity_setpoint_.twist.linear.y = kp_hover_y_ * position_error_[1] + position_i_y_ + kd_hover_y_ * position_diff_[1];
+    velocity_setpoint_.twist.linear.z = kp_hover_z_ * position_error_[2] + position_i_z_ + kd_hover_z_ * position_diff_[2];
+   
+    // velocity_setpoint_.twist.linear.x = 0.7;
+    // velocity_setpoint_.twist.linear.y = 0.3;
+    // velocity_setpoint_.twist.linear.z = 0;
 
     position_setpoint_.header.stamp = ros::Time::now();
     position_setpoint_.header.frame_id = "odom";
@@ -113,6 +115,9 @@ void QuadrotorFeedbackController::velocityControlFeedback() {
     Eigen::Vector3d velocity_cmd_(velocity_setpoint_.twist.linear.x, velocity_setpoint_.twist.linear.y,
                                   velocity_setpoint_.twist.linear.z);
     // std::cout<<"!!!"<<velocity_cmd_<<std::endl;
+    // Eigen::Vector3d velocity_cmd_debug_(0.1,0,0);
+    // Eigen::Vector3d velocity_error_ = velocity_cmd_debug_ - current_velocity_;
+
     Eigen::Vector3d velocity_error_ = velocity_cmd_ - current_velocity_;
 
     double psi_ = current_attitude_[2];
@@ -160,17 +165,20 @@ void QuadrotorFeedbackController::velocityControlFeedback() {
     if (velocity_i_z_ < -1)
         velocity_i_z_ = -1;
 
-    double thrust_cmd_ = 0.25 + kp_hover_vz_ * velocity_error_[2] + velocity_i_z_;
+    velocity_diff_ = velocity_error_ - position_last_error_;
+    velocity_last_error_ = velocity_error_;
+
+    double thrust_cmd_ = 0.25 + kp_hover_vz_ * velocity_error_[2] + velocity_i_z_ + kd_hover_vz_ * velocity_diff_[2];
     if (thrust_cmd_ >= 0.95)
         thrust_cmd_ = 0.95;
     if (thrust_cmd_ <= 0.01)
         thrust_cmd_ = 0;
     // printf("thrust_cmd: %lf \n", thrust_cmd_);
 
-    double theta_cmd_ = kp_hover_vx_ * velocity_error_[0] + velocity_i_x_;
+    double theta_cmd_ = kp_hover_vx_ * velocity_error_[0] + velocity_i_x_ + kd_hover_vx_ * velocity_diff_[0];
 
     // double theta_cmd_ =0 / 180 *PI;
-    double phi_cmd_ = kp_hover_vy_ * velocity_error_[1] + velocity_i_y_;
+    double phi_cmd_ = kp_hover_vy_ * velocity_error_[1] + velocity_i_y_ + kd_hover_vy_ * velocity_diff_[1];
     // double phi_cmd_ = 0 / 180 *PI;
     double psi_cmd_ = 0.0f;
     if (theta_cmd_ > 0.5)
@@ -228,8 +236,24 @@ void QuadrotorFeedbackController::velocityControlFeedback() {
     data_ptr->pub_new_velocity.vector.y = current_velocity_[1];
     data_ptr->pub_new_velocity.vector.z = current_velocity_[2];
 
+    // debug
+	data_ptr->attitude_cmd_kp_.vector.x = kp_hover_vy_ * velocity_error_[1];
+    data_ptr->attitude_cmd_kp_.vector.y = kp_hover_vx_ * velocity_error_[0];
+	data_ptr->attitude_cmd_kp_.vector.z = kp_hover_vz_ * velocity_error_[2];
+    data_ptr->attitude_cmd_kp_.header.stamp = ros::Time::now();
 
-    // std::cout << "phi_cmd: " << phi_cmd_*180/PI << std::endl;
+    data_ptr->attitude_cmd_ki_.vector.x = velocity_i_y_;
+    data_ptr->attitude_cmd_ki_.vector.y = velocity_i_x_;
+    data_ptr->attitude_cmd_ki_.vector.z = velocity_i_z_;
+    data_ptr->attitude_cmd_ki_.header.stamp = ros::Time::now();
+
+    data_ptr->attitude_cmd_kd_.vector.x = kd_hover_vy_ * velocity_diff_[1];
+    data_ptr->attitude_cmd_kd_.vector.y = kd_hover_vx_ * velocity_diff_[0];
+    data_ptr->attitude_cmd_kd_.vector.z = kd_hover_vz_ * velocity_diff_[2];
+    data_ptr->attitude_cmd_kd_.header.stamp = ros::Time::now(); 
+
+
+	// std::cout << "phi_cmd: " << phi_cmd_*180/PI << std::endl;
     // std::cout << "theta_cmd: " << theta_cmd_*180/PI << std::endl;
     // std::cout << "psi_cmd: " << psi_cmd_*180/PI << std::endl;
 }

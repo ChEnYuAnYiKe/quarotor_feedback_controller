@@ -55,6 +55,11 @@ public:
         ros::Subscriber fly_time_sub;
         ros::Subscriber wrapper_rc_state_sub_;
         ros::Subscriber wrapper_acc_sub_;
+
+        ros::Subscriber wrapper_attitude_sub_;
+        ros::Subscriber wrapper_position_filtered_sub_;
+        ros::Subscriber wrapper_velocity_filtered_sub_;
+        
     } m_Subscriber;
 
     struct PublisherWrapper {
@@ -74,6 +79,11 @@ public:
         ros::Publisher fly_time_pub;
         ros::Publisher draw_fly_pub;
         ros::Publisher draw_ref_pub;
+
+        ros::Publisher atti_cmd_kp_pub;
+        ros::Publisher atti_cmd_ki_pub;
+        ros::Publisher atti_cmd_kd_pub;
+
     } m_Publisher;
 
     struct DataCentre wrap_data;
@@ -103,8 +113,13 @@ public:
 
     void velocityCallback(const geometry_msgs::TwistStamped::ConstPtr &msg);
 
+    void velocityfilteredCallback(const geometry_msgs::TwistStamped::ConstPtr &msg);
+
+    void positionfilteredCallback(const geometry_msgs::PoseStamped::ConstPtr &msg);
+
     void accCallback(const geometry_msgs::TwistStamped::ConstPtr &msg);
 
+    void attitudeCallback(const sensor_msgs::Imu::ConstPtr &msg);  
 
     void statusCallback(const std_msgs::Bool::ConstPtr &msg);
 
