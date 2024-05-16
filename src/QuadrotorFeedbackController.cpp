@@ -15,30 +15,56 @@ QuadrotorFeedbackController::QuadrotorFeedbackController(geometry_msgs::PoseStam
     eval_ptr_ = 0;
 
     // hover PID params init
-    kp_hover_x_ = 0.21;
-    kp_hover_y_ = 0.21;
-    kp_hover_z_ = 1.1;
+    nh2.param("kp_hover_x", kp_hover_x_, 0.24);
+    nh2.param("kp_hover_y", kp_hover_y_, 0.24);
+    nh2.param("kp_hover_z", kp_hover_z_, 1.1);
 
-    ki_hover_x_ = 0.01;
-    ki_hover_y_ = 0.01;
-    ki_hover_z_ = 0.02;
+    nh2.param("ki_hover_x", ki_hover_x_, 0.01);
+    nh2.param("ki_hover_y", ki_hover_y_, 0.01);
+    nh2.param("ki_hover_z", ki_hover_z_, 0.02);
+    
+    nh2.param("kd_hover_x", kd_hover_x_, 0.03);
+    nh2.param("kd_hover_y", kd_hover_y_, 0.03);
+    nh2.param("kd_hover_z", kd_hover_z_, 0.);
 
-    kd_hover_x_ = 0.037;
-    kd_hover_y_ = 0.037;
-    kd_hover_z_ = 0;     
+
+    nh2.param("kp_hover_vx", kp_hover_vx_, 0.065);
+    nh2.param("kp_hover_vy", kp_hover_vy_, -0.065);
+    nh2.param("kp_hover_vz", kp_hover_vz_, 0.07);
+
+    nh2.param("ki_hover_vx", ki_hover_vx_, 0.005);
+    nh2.param("ki_hover_vy", ki_hover_vy_, -0.005);
+    nh2.param("ki_hover_vz", ki_hover_vz_, 0.1);
+
+    nh2.param("kd_hover_vx", kd_hover_vx_, 0.001);
+    nh2.param("kd_hover_vy", kd_hover_vy_, 0.001);
+    nh2.param("kd_hover_vz", kd_hover_vz_, 0.);
+
+    // kp_hover_x_ = 0.24;
+    // kp_hover_y_ = 0.24;
+    // kp_hover_z_ = 1.1;
+
+    // ki_hover_x_ = 0.01;
+    // ki_hover_y_ = 0.01;
+    // ki_hover_z_ = 0.02;
+
+    // kd_hover_x_ = 0.03;
+    // kd_hover_y_ = 0.03;
+    // kd_hover_z_ = 0;     
 
 
-    kp_hover_vx_ = 0.065;
-    kp_hover_vy_ = -0.062;
-    kp_hover_vz_ = 0.07;
+    // kp_hover_vx_ = 0.065;
+    // kp_hover_vy_ = -0.065;
+    // kp_hover_vz_ = 0.07;
 
-    ki_hover_vx_ = 0.007;
-    ki_hover_vy_ = -0.005;
-    ki_hover_vz_ = 0.1;
+    // ki_hover_vx_ = 0.005;
+    // ki_hover_vy_ = -0.005;
+    // ki_hover_vz_ = 0.1;
 
-    kd_hover_vx_ = 0.022;
-    kd_hover_vy_ = 0.024;
-    kd_hover_vz_ = 0;
+    // kd_hover_vx_ = 0.001;
+    // kd_hover_vy_ = 0.001;
+    // kd_hover_vz_ = 0;
+
 }
 
 QuadrotorFeedbackController::~QuadrotorFeedbackController() {
@@ -168,6 +194,22 @@ void QuadrotorFeedbackController::velocityControlFeedback() {
     velocity_diff_ = velocity_error_ - position_last_error_;
     velocity_last_error_ = velocity_error_;
 
+    // debug
+	data_ptr->attitude_cmd_kp_.vector.x = kp_hover_vy_ * velocity_error_[1];
+    data_ptr->attitude_cmd_kp_.vector.y = kp_hover_vx_ * velocity_error_[0];
+	data_ptr->attitude_cmd_kp_.vector.z = kp_hover_vz_ * velocity_error_[2];
+    data_ptr->attitude_cmd_kp_.header.stamp = ros::Time::now();
+
+    data_ptr->attitude_cmd_ki_.vector.x = velocity_i_y_;
+    data_ptr->attitude_cmd_ki_.vector.y = velocity_i_x_;
+    data_ptr->attitude_cmd_ki_.vector.z = velocity_i_z_;
+    data_ptr->attitude_cmd_ki_.header.stamp = ros::Time::now();
+
+    data_ptr->attitude_cmd_kd_.vector.x = kd_hover_vy_ * velocity_diff_[1];
+    data_ptr->attitude_cmd_kd_.vector.y = kd_hover_vx_ * velocity_diff_[0];
+    data_ptr->attitude_cmd_kd_.vector.z = kd_hover_vz_ * velocity_diff_[2];
+    data_ptr->attitude_cmd_kd_.header.stamp = ros::Time::now(); 
+
     double thrust_cmd_ = 0.25 + kp_hover_vz_ * velocity_error_[2] + velocity_i_z_ + kd_hover_vz_ * velocity_diff_[2];
     if (thrust_cmd_ >= 0.95)
         thrust_cmd_ = 0.95;
@@ -235,22 +277,6 @@ void QuadrotorFeedbackController::velocityControlFeedback() {
     data_ptr->pub_new_velocity.vector.x = current_velocity_[0];
     data_ptr->pub_new_velocity.vector.y = current_velocity_[1];
     data_ptr->pub_new_velocity.vector.z = current_velocity_[2];
-
-    // debug
-	data_ptr->attitude_cmd_kp_.vector.x = kp_hover_vy_ * velocity_error_[1];
-    data_ptr->attitude_cmd_kp_.vector.y = kp_hover_vx_ * velocity_error_[0];
-	data_ptr->attitude_cmd_kp_.vector.z = kp_hover_vz_ * velocity_error_[2];
-    data_ptr->attitude_cmd_kp_.header.stamp = ros::Time::now();
-
-    data_ptr->attitude_cmd_ki_.vector.x = velocity_i_y_;
-    data_ptr->attitude_cmd_ki_.vector.y = velocity_i_x_;
-    data_ptr->attitude_cmd_ki_.vector.z = velocity_i_z_;
-    data_ptr->attitude_cmd_ki_.header.stamp = ros::Time::now();
-
-    data_ptr->attitude_cmd_kd_.vector.x = kd_hover_vy_ * velocity_diff_[1];
-    data_ptr->attitude_cmd_kd_.vector.y = kd_hover_vx_ * velocity_diff_[0];
-    data_ptr->attitude_cmd_kd_.vector.z = kd_hover_vz_ * velocity_diff_[2];
-    data_ptr->attitude_cmd_kd_.header.stamp = ros::Time::now(); 
 
 
 	// std::cout << "phi_cmd: " << phi_cmd_*180/PI << std::endl;

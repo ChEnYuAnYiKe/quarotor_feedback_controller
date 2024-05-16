@@ -57,6 +57,7 @@ struct DataCentre {
 class QuadrotorFeedbackController {
 private:
     // const ros::NodeHandle &nh_;
+    ros::NodeHandle nh2;
     //data
     geometry_msgs::PoseStamped position_setpoint_;
     geometry_msgs::TwistStamped velocity_setpoint_;
