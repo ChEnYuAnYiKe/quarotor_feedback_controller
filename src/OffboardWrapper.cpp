@@ -468,15 +468,20 @@ void OffboardWrapper::run() {
                 }
                 c1.positionControlFeedback();
                 c1.velocityControlFeedback();
-                start_planning_t_ = ros::Time::now();
+			    // c1.postition_attitudeControlFeedback();
+
+			    start_planning_t_ = ros::Time::now();
                 break;
 
             case READY:
                 printf("enter ready!!\n");
                 if (ready_flag) current_status_ = PLANNING;
                 c1.loadLatestData();
+
                 c1.positionControlFeedback();
                 c1.velocityControlFeedback();
+                // c1.postition_attitudeControlFeedback();
+
                 start_planning_t_ = ros::Time::now();
 //            m_Publisher.wrapper_local_pos_pub_.publish(wrap_data.pub_setpoint_position_);
                 break;

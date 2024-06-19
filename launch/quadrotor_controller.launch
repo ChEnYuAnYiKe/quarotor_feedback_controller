@@ -9,25 +9,35 @@
     <param name="position2_y" type="double" value="3"/>
     <param name="position2_z" type="double" value="1.5"/>
 
-    <param name="kp_hover_x" type="double" value="0.24"/>
-    <param name="kp_hover_y" type="double" value="0.24"/>
+    <param name="kp_hover_x" type="double" value="0.9"/>
+    <param name="kp_hover_y" type="double" value="0.9"/>
     <param name="kp_hover_z" type="double" value="1.1"/>
-    <param name="ki_hover_x" type="double" value="0.01"/>
-    <param name="ki_hover_y" type="double" value="0.01"/>
+    <param name="ki_hover_x" type="double" value="0.015"/>
+    <param name="ki_hover_y" type="double" value="0.015"/>
     <param name="ki_hover_z" type="double" value="0.02"/>
-    <param name="kd_hover_x" type="double" value="0.03"/>
-    <param name="kd_hover_y" type="double" value="0.03"/>
+    <param name="kd_hover_x" type="double" value="0.42"/>
+    <param name="kd_hover_y" type="double" value="0.42"/>
     <param name="kd_hover_z" type="double" value="0."/>
 
-    <param name="kp_hover_vx" type="double" value="0.065"/>
-    <param name="kp_hover_vy" type="double" value="-0.065"/>
+    <param name="kp_hover_vx" type="double" value="0.05"/>
+    <param name="kp_hover_vy" type="double" value="-0.05"/>
     <param name="kp_hover_vz" type="double" value="0.07"/>
     <param name="ki_hover_vx" type="double" value="0.005"/>
     <param name="ki_hover_vy" type="double" value="-0.005"/>
     <param name="ki_hover_vz" type="double" value="0.1"/>
-    <param name="kd_hover_vx" type="double" value="0.001"/>
-    <param name="kd_hover_vy" type="double" value="0.001"/>
+    <param name="kd_hover_vx" type="double" value="0.01"/>
+    <param name="kd_hover_vy" type="double" value="-0.01"/>
     <param name="kd_hover_vz" type="double" value="0."/>
+
+    <!-- <param name="kp_hover_x_a" type="double" value="0.05"/>
+    <param name="kp_hover_y_a" type="double" value="0.05"/>
+    <param name="kp_hover_z_a" type="double" value="0.1"/>
+    <param name="ki_hover_x_a" type="double" value="0."/>
+    <param name="ki_hover_y_a" type="double" value="0."/>
+    <param name="ki_hover_z_a" type="double" value="0."/>
+    <param name="kd_hover_x_a" type="double" value="0.1"/>
+    <param name="kd_hover_y_a" type="double" value="0.1"/>
+    <param name="kd_hover_z_a" type="double" value="1."/> -->
 
     <node pkg="quarotor_feedback_controller" type="quarotor_feedback_controller1" name="vehicle1" output="screen">
         <rosparam file="$(find quarotor_feedback_controller)/config/param.yaml" command="load"/>

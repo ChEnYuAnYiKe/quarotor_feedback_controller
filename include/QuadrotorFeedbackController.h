@@ -71,8 +71,12 @@ private:
     double kp_hover_x_, kp_hover_y_, kp_hover_z_, kp_hover_vx_, kp_hover_vy_, kp_hover_vz_;
     double ki_hover_x_, ki_hover_y_, ki_hover_z_, ki_hover_vx_, ki_hover_vy_, ki_hover_vz_;
     double kd_hover_x_, kd_hover_y_, kd_hover_z_, kd_hover_vx_, kd_hover_vy_, kd_hover_vz_;
-
+    
+    double kp_hover_x_a_, kp_hover_y_a_, kp_hover_z_a_;
+    double ki_hover_x_a_, ki_hover_y_a_, ki_hover_z_a_;
+    double kd_hover_x_a_, kd_hover_y_a_, kd_hover_z_a_;
     //thrust eval
+
     int eval_ptr_;
 
     Eigen::Vector3d current_position_, current_velocity_, current_attitude_;
@@ -95,6 +99,8 @@ public:
     void positionControlFeedback();
 
     void velocityControlFeedback();
+
+    void postition_attitudeControlFeedback();
 
     void get_params(const ros::NodeHandle &nh);
 };
