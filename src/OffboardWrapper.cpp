@@ -1,7 +1,8 @@
 #include "OffboardWrapper.h"
 
-OffboardWrapper::OffboardWrapper(geometry_msgs::PoseStamped position_setpoint,geometry_msgs::PoseStamped end_setpoint,
-                                 std::string id, std::string node_id, std::string dataset) {
+OffboardWrapper::OffboardWrapper(geometry_msgs::PoseStamped position_setpoint, geometry_msgs::PoseStamped end_setpoint,
+                                 std::string id, std::string node_id, std::string dataset)
+{
     uav_id = id;
     node_id = node_id;
     dataset_address = dataset;
@@ -9,11 +10,11 @@ OffboardWrapper::OffboardWrapper(geometry_msgs::PoseStamped position_setpoint,ge
     fly_time_from_node_1 = 0;
     // Publisher
     m_Publisher.wrapper_local_pos_pub_ = nh.advertise<geometry_msgs::PoseStamped>(
-            uav_id + "/mavros/setpoint_position/local", 10);
+        uav_id + "/mavros/setpoint_position/local", 10);
     m_Publisher.wrapper_vision_pos_pub_ = nh.advertise<geometry_msgs::PoseStamped>(uav_id + "/mavros/vision_pose/pose",
                                                                                    10);
     m_Publisher.wrapper_attitude_pub_ = nh.advertise<mavros_msgs::AttitudeTarget>(
-            uav_id + "/mavros/setpoint_raw/attitude", 10);
+        uav_id + "/mavros/setpoint_raw/attitude", 10);
     m_Publisher.wrapper_angluar_acc_pub = nh.advertise<geometry_msgs::Vector3Stamped>(node_id + "/angluar_acceleration",
                                                                                       10);
 
@@ -26,13 +27,13 @@ OffboardWrapper::OffboardWrapper(geometry_msgs::PoseStamped position_setpoint,ge
     m_Publisher.path_fly_pub = nh.advertise<nav_msgs::Path>(node_id + "/fly_path", 1);
 
     m_Publisher.time_sync_pub = nh.advertise<std_msgs::Bool>(node_id + "/is_ok", 1);
-    if (uav_id == "/uav1") {
+    if (uav_id == "/uav1")
+    {
         m_Publisher.fly_time_pub = nh.advertise<std_msgs::Time>("offb1_node/fly_time", 10);
-
     }
     m_Publisher.draw_ref_pub = nh.advertise<geometry_msgs::PoseStamped>(node_id + "/ref_point", 10);
     m_Publisher.draw_fly_pub = nh.advertise<geometry_msgs::PoseStamped>(node_id + "/fly_point", 10);
-    
+
     // debug
     m_Publisher.atti_cmd_kp_pub = nh.advertise<geometry_msgs::Vector3Stamped>(node_id + "/attitude_cmd_kp", 10);
     m_Publisher.atti_cmd_ki_pub = nh.advertise<geometry_msgs::Vector3Stamped>(node_id + "/attitude_cmd_ki", 10);
@@ -50,60 +51,68 @@ OffboardWrapper::OffboardWrapper(geometry_msgs::PoseStamped position_setpoint,ge
     time_sync_flag = 0;
 }
 
-OffboardWrapper::~OffboardWrapper() {
+OffboardWrapper::~OffboardWrapper()
+{
 }
 
-void OffboardWrapper::getEndPoint() {
-//  ifstream fin(dataset_address);
-//  string line, word;
-//  vector<string> row;
-//  vector<vector<string>> content;
-//  int row_num = 0, col_num = 0;
-//
-//  while (getline(fin, line))
-//  {
-//    row.clear();
-//    stringstream str(line);
-//    col_num = 0;
-//    while (getline(str, word, ','))
-//    {
-//      row.push_back(word);
-//      content.push_back(row);
-//      col_num += 1;
-//    }
-//    row_num += 1;
-//  }
-//  // std::cout << col_num << std::endl;
-//  end_position_setpoint_.pose.position.x = stof(content[(row_num)*col_num-2][1]);
-//  end_position_setpoint_.pose.position.y = stof(content[(row_num)*col_num-2][2]);
-//  end_position_setpoint_.pose.position.z = stof(content[(row_num)*col_num-2][3]);
-//  fin.close();
+void OffboardWrapper::getEndPoint()
+{
+    //  ifstream fin(dataset_address);
+    //  string line, word;
+    //  vector<string> row;
+    //  vector<vector<string>> content;
+    //  int row_num = 0, col_num = 0;
+    //
+    //  while (getline(fin, line))
+    //  {
+    //    row.clear();
+    //    stringstream str(line);
+    //    col_num = 0;
+    //    while (getline(str, word, ','))
+    //    {
+    //      row.push_back(word);
+    //      content.push_back(row);
+    //      col_num += 1;
+    //    }
+    //    row_num += 1;
+    //  }
+    //  // std::cout << col_num << std::endl;
+    //  end_position_setpoint_.pose.position.x = stof(content[(row_num)*col_num-2][1]);
+    //  end_position_setpoint_.pose.position.y = stof(content[(row_num)*col_num-2][2]);
+    //  end_position_setpoint_.pose.position.z = stof(content[(row_num)*col_num-2][3]);
+    //  fin.close();
 }
 
-void OffboardWrapper::isAtSetpoint() {
+void OffboardWrapper::isAtSetpoint()
+{
     Eigen::Vector3d hp_(start_position_setpoint_.pose.position.x,
                         start_position_setpoint_.pose.position.y,
                         start_position_setpoint_.pose.position.z);
     Eigen::Vector3d dis_ = wrap_data.wrapper_current_position_ - hp_;
 
-    if (dis_.norm() < 0.1) {
-        if (hover_flag) {
+    if (dis_.norm() < 0.1)
+    {
+        if (hover_flag)
+        {
             start_hover_t = ros::Time::now();
             hover_flag = 0;
             time_sync_flag = 1;
             node_1_time_pub_flg = 1;
-
         }
-        if ((ros::Time::now() - start_hover_t).toSec() >= 5.0) {
-            if (num_of_ok_drone == 1) {
-                if (uav_id == "/uav1" && node_1_time_pub_flg == 1) {
+        if ((ros::Time::now() - start_hover_t).toSec() >= 5.0)
+        {
+            if (num_of_ok_drone == 1)
+            {
+                if (uav_id == "/uav1" && node_1_time_pub_flg == 1)
+                {
                     fly_time = ros::Time::now() + ros::Duration(5);
                     std::cout << "uav 1 fly time:" << fly_time.toSec() << std::endl;
                     printf("uav1 get time");
                     node_1_time_pub_flg = 0;
                 }
                 if (fly_time_from_node_1 - ros::Time::now().toSec() < 0.1 &&
-                    fly_time_from_node_1 - ros::Time::now().toSec() > 0) {
+                    fly_time_from_node_1 - ros::Time::now().toSec() > 0)
+                {
                     ros::Duration(fly_time_delay).sleep();
                     std::cout << uav_id << "get time:" << fly_time_from_node_1 << std::endl;
                     printf("enter planning!!\n");
@@ -112,15 +121,16 @@ void OffboardWrapper::isAtSetpoint() {
                     // current_status_ = PLANNING;
                     current_status_ = HOVER;
                 }
-
             }
             // enter planning
         }
-    } else
+    }
+    else
         current_status_ = HOVER;
 }
 
-void OffboardWrapper::topicPublish() {
+void OffboardWrapper::topicPublish()
+{
     wrap_data.thrust_attitude_cmd_.header.frame_id = "base_footprint";
     wrap_data.thrust_attitude_cmd_.header.stamp = ros::Time::now();
     m_Publisher.wrapper_attitude_pub_.publish(wrap_data.thrust_attitude_cmd_);
@@ -138,59 +148,67 @@ void OffboardWrapper::topicPublish() {
     m_Publisher.path_ref_pub.publish(wrap_data.path_ref);
     m_Publisher.path_fly_pub.publish(wrap_data.path_fly);
 
-    //debug
+    // debug
     m_Publisher.atti_cmd_kp_pub.publish(wrap_data.attitude_cmd_kp_);
     m_Publisher.atti_cmd_ki_pub.publish(wrap_data.attitude_cmd_ki_);
     m_Publisher.atti_cmd_kd_pub.publish(wrap_data.attitude_cmd_kd_);
 
-    if (time_sync_flag == 1) {
+    if (time_sync_flag == 1)
+    {
         wrap_data.is_ok_.data = 1;
         m_Publisher.time_sync_pub.publish(wrap_data.is_ok_);
-//      std::cout<<"TIME OK=========================================="<<std::endl;
+        //      std::cout<<"TIME OK=========================================="<<std::endl;
         wrap_data.is_ok_.data = 0;
         time_sync_flag = 0;
     }
-    if (uav_id == "/uav1") {
+    if (uav_id == "/uav1")
+    {
         wrap_data.fly_time_msg.data = fly_time;
         m_Publisher.fly_time_pub.publish(wrap_data.fly_time_msg);
     }
     wrap_data.is_ready_.data = current_status_;
     m_Publisher.wrapper_status_pub.publish(wrap_data.is_ready_);
-
-
 }
 
-void OffboardWrapper::subscriber() {
+void OffboardWrapper::subscriber()
+{
     m_Subscriber.wrapper_state_sub_ = nh.subscribe<mavros_msgs::State>(uav_id + "/mavros/state",
                                                                        10,
                                                                        &OffboardWrapper::stateCallback,
                                                                        this);
     // in uwb-position
     m_Subscriber.wrapper_attitude_sub_ = nh.subscribe<sensor_msgs::Imu>("/mavros/imu/data",
-                                                    10,
-                                                    &OffboardWrapper::attitudeCallback,
-                                                    this);
+                                                                        10,
+                                                                        &OffboardWrapper::attitudeCallback,
+                                                                        this);
     m_Subscriber.wrapper_position_filtered_sub_ = nh.subscribe<geometry_msgs::PoseStamped>("/position_filter",
-                                                    10,
-                                                    &OffboardWrapper::positionfilteredCallback,
-                                                    this);      
+                                                                                           10,
+                                                                                           &OffboardWrapper::positionfilteredCallback,
+                                                                                           this);
     m_Subscriber.wrapper_velocity_filtered_sub_ = nh.subscribe<geometry_msgs::TwistStamped>("/velocity_filter",
-                                                    10,
-                                                    &OffboardWrapper::velocityfilteredCallback,
-                                                    this);                              
+                                                                                            10,
+                                                                                            &OffboardWrapper::velocityfilteredCallback,
+                                                                                            this);
+    // using lidar diff vz
+    m_Subscriber.wrapper_lidar_vz_sub_ = nh.subscribe<geometry_msgs::PoseStamped>("/lidar_position",
+                                                                                  10,
+                                                                                  &OffboardWrapper::lidarVzCallback,
+                                                                                  this);
 
     // in real
-     if(uav_id == ""){
+    if (uav_id == "")
+    {
         m_Subscriber.wrapper_vrpn_sub_ = nh.subscribe<geometry_msgs::PoseStamped>("vrpn_client_node/cyy/pose",
-                                                       10,
-                                                       &OffboardWrapper::visualCallback,
-                                                       this);
+                                                                                  10,
+                                                                                  &OffboardWrapper::visualCallback,
+                                                                                  this);
     }
-    else if(uav_id == "/uav2"){
+    else if (uav_id == "/uav2")
+    {
         m_Subscriber.wrapper_vrpn_sub_ = nh.subscribe<geometry_msgs::PoseStamped>("vrpn_client_node/jiahao2/pose",
-                                                       10,
-                                                       &OffboardWrapper::visualCallback,
-                                                       this);
+                                                                                  10,
+                                                                                  &OffboardWrapper::visualCallback,
+                                                                                  this);
     }
     // in simulator
 
@@ -256,62 +274,72 @@ void OffboardWrapper::subscriber() {
                                                                        this);
 }
 
-void OffboardWrapper::rc_state_Callback(const mavros_msgs::VFR_HUD::ConstPtr &msg) {
+void OffboardWrapper::rc_state_Callback(const mavros_msgs::VFR_HUD::ConstPtr &msg)
+{
     wrap_data.rc_state = msg->heading;
     // std::cout<<msg->heading<<std::endl;
 }
 
-void OffboardWrapper::flytimeCallback(const std_msgs::Time::ConstPtr &msg) {
+void OffboardWrapper::flytimeCallback(const std_msgs::Time::ConstPtr &msg)
+{
     std_msgs::Time time = *msg;
     fly_time_from_node_1 = time.data.toSec();
 }
 
-void OffboardWrapper::timesyncCallback1(const std_msgs::Bool::ConstPtr &msg) {
+void OffboardWrapper::timesyncCallback1(const std_msgs::Bool::ConstPtr &msg)
+{
     std_msgs::Bool_<allocator<void>> is_ok = *msg;
     num_of_ok_drone++;
     std::cout << num_of_ok_drone << std::endl;
 }
 
-void OffboardWrapper::timesyncCallback2(const std_msgs::Bool::ConstPtr &msg) {
+void OffboardWrapper::timesyncCallback2(const std_msgs::Bool::ConstPtr &msg)
+{
     std_msgs::Bool_<allocator<void>> is_ok = *msg;
     num_of_ok_drone++;
     std::cout << num_of_ok_drone << std::endl;
 }
 
-void OffboardWrapper::timesyncCallback3(const std_msgs::Bool::ConstPtr &msg) {
+void OffboardWrapper::timesyncCallback3(const std_msgs::Bool::ConstPtr &msg)
+{
     std_msgs::Bool_<allocator<void>> is_ok = *msg;
     num_of_ok_drone++;
     std::cout << num_of_ok_drone << std::endl;
 }
 
-void OffboardWrapper::timesyncCallback4(const std_msgs::Bool::ConstPtr &msg) {
+void OffboardWrapper::timesyncCallback4(const std_msgs::Bool::ConstPtr &msg)
+{
     std_msgs::Bool_<allocator<void>> is_ok = *msg;
     num_of_ok_drone++;
     std::cout << num_of_ok_drone << std::endl;
 }
 
-void OffboardWrapper::timesyncCallback5(const std_msgs::Bool::ConstPtr &msg) {
+void OffboardWrapper::timesyncCallback5(const std_msgs::Bool::ConstPtr &msg)
+{
     std_msgs::Bool_<allocator<void>> is_ok = *msg;
     num_of_ok_drone++;
     std::cout << num_of_ok_drone << std::endl;
 }
 
-void OffboardWrapper::stateCallback(const mavros_msgs::State::ConstPtr &msg) {
+void OffboardWrapper::stateCallback(const mavros_msgs::State::ConstPtr &msg)
+{
     wrapper_current_state_ = *msg;
     wrap_data.current_state_ = wrapper_current_state_.mode;
 }
 
-void OffboardWrapper::velocityCallback(const geometry_msgs::TwistStamped::ConstPtr &msg) {
+void OffboardWrapper::velocityCallback(const geometry_msgs::TwistStamped::ConstPtr &msg)
+{
     geometry_msgs::TwistStamped wrapper_current_velo;
     wrapper_current_velo = *msg;
     // x y switch from betaflight!!!!!!!!!!!
     Eigen::Vector3d cur_velocity(wrapper_current_velo.twist.linear.x,
                                  wrapper_current_velo.twist.linear.y,
                                  wrapper_current_velo.twist.linear.z);
-    wrap_data.wrapper_current_velocity_[2] = cur_velocity[2];
+    // wrap_data.wrapper_current_velocity_[2] = cur_velocity[2];
 }
 
-void OffboardWrapper::velocityfilteredCallback(const geometry_msgs::TwistStamped::ConstPtr &msg) {
+void OffboardWrapper::velocityfilteredCallback(const geometry_msgs::TwistStamped::ConstPtr &msg)
+{
     geometry_msgs::TwistStamped wrapper_current_velo_filtered;
     wrapper_current_velo_filtered = *msg;
     Eigen::Vector3d cur_velocity_filtered(wrapper_current_velo_filtered.twist.linear.x,
@@ -320,11 +348,13 @@ void OffboardWrapper::velocityfilteredCallback(const geometry_msgs::TwistStamped
 
     wrap_data.wrapper_current_velocity_[0] = cur_velocity_filtered[0];
     wrap_data.wrapper_current_velocity_[1] = cur_velocity_filtered[1];
+    // wrap_data.wrapper_current_velocity_[2] = cur_velocity_filtered[2];
 
     // wrap_data.wrapper_current_velocity_ = cur_velocity_filtered;
 }
 
-void OffboardWrapper::visualCallback(const geometry_msgs::PoseStamped::ConstPtr &msg) {
+void OffboardWrapper::visualCallback(const geometry_msgs::PoseStamped::ConstPtr &msg)
+{
     geometry_msgs::PoseStamped wrapper_current_vrpn_ = *msg;
     tf::Quaternion rq;
     Eigen::Vector3d cur_position_(wrapper_current_vrpn_.pose.position.x,
@@ -338,7 +368,7 @@ void OffboardWrapper::visualCallback(const geometry_msgs::PoseStamped::ConstPtr 
     // std::cout << (ros::Time::now() - wrap_data.last_v_time).toNSec() << std::endl;
 
     // wrap_data.wrapper_current_position_ = cur_position_;
-    wrap_data.wrapper_current_position_[2] = cur_position_[2];
+    // wrap_data.wrapper_current_position_[2] = cur_position_[2];
 
     Eigen::Vector3d current_attitude_store1;
     tf::quaternionMsgToTF(wrapper_current_vrpn_.pose.orientation, rq);
@@ -355,14 +385,24 @@ void OffboardWrapper::visualCallback(const geometry_msgs::PoseStamped::ConstPtr 
     // m_Publisher.wrapper_vision_pos_pub_.publish(wrapper_vision_pos_);
 }
 
-void OffboardWrapper::positionfilteredCallback(const geometry_msgs::PoseStamped::ConstPtr &msg) {
+void OffboardWrapper::positionfilteredCallback(const geometry_msgs::PoseStamped::ConstPtr &msg)
+{
     geometry_msgs::PoseStamped wrapper_current_pos_filtered_ = *msg;
 
     wrap_data.wrapper_current_position_[0] = wrapper_current_pos_filtered_.pose.position.x;
     wrap_data.wrapper_current_position_[1] = wrapper_current_pos_filtered_.pose.position.y;
+    // wrap_data.wrapper_current_position_[2] = wrapper_current_pos_filtered_.pose.position.z;
 }
 
-void OffboardWrapper::attitudeCallback(const sensor_msgs::Imu::ConstPtr &msg) {
+void OffboardWrapper::lidarVzCallback(const geometry_msgs::PoseStamped::ConstPtr &msg)
+{
+    geometry_msgs::PoseStamped wrapper_current_lidar_vz_ = *msg;
+    wrap_data.wrapper_current_position_[2] = wrapper_current_lidar_vz_.pose.position.z;
+    wrap_data.wrapper_current_velocity_[2] = wrapper_current_lidar_vz_.pose.orientation.z;
+}
+
+void OffboardWrapper::attitudeCallback(const sensor_msgs::Imu::ConstPtr &msg)
+{
     sensor_msgs::Imu current_imu_status = *msg;
     tf::Quaternion iq;
     Eigen::Vector3d current_attitude_store2;
@@ -376,10 +416,10 @@ void OffboardWrapper::attitudeCallback(const sensor_msgs::Imu::ConstPtr &msg) {
     tf::Matrix3x3(iq).getRPY(wrap_data.wrapper_current_attitude_[0],
                              wrap_data.wrapper_current_attitude_[1],
                              current_attitude_store2[2]);
-
 }
 
-void OffboardWrapper::accCallback(const geometry_msgs::TwistStamped::ConstPtr &msg) {
+void OffboardWrapper::accCallback(const geometry_msgs::TwistStamped::ConstPtr &msg)
+{
     geometry_msgs::TwistStamped wrapper_current_acc;
     wrapper_current_acc = *msg;
     // x y switch from betaflight!!!!!!!!!!!
@@ -403,7 +443,7 @@ void OffboardWrapper::accCallback(const geometry_msgs::TwistStamped::ConstPtr &m
 //   m_Publisher.wrapper_vision_pos_pub_.publish(wrapper_vision_pos_);
 // }
 // in simulator
-//void OffboardWrapper::visualCallback(const nav_msgs::Odometry::ConstPtr &msg) {
+// void OffboardWrapper::visualCallback(const nav_msgs::Odometry::ConstPtr &msg) {
 //    nav_msgs::Odometry wrapper_current_vrpn_ = *msg;
 //    Vector3d cur_position_;
 //    if (uav_id == "/uav0") {
@@ -436,85 +476,92 @@ void OffboardWrapper::accCallback(const geometry_msgs::TwistStamped::ConstPtr &m
 //    wrap_data.wrapper_current_position_ = cur_position_;
 //}
 
-void OffboardWrapper::statusCallback(const std_msgs::Bool::ConstPtr &msg) {
+void OffboardWrapper::statusCallback(const std_msgs::Bool::ConstPtr &msg)
+{
     ready_flag = (*msg).data;
 }
 
-void OffboardWrapper::run() {
+void OffboardWrapper::run()
+{
     wrap_data.fly_path_point = start_position_setpoint_;
     wrap_data.ref_path_point = start_position_setpoint_;
     QuadrotorFeedbackController c1(start_position_setpoint_, &wrap_data);
     QuadrotorMPCController c2(&wrap_data);
-//  getEndPoint(); // end_position_setpoint_ from this function
+    //  getEndPoint(); // end_position_setpoint_ from this function
     c2.readCsvData(dataset_address);
     QuadrotorFeedbackController c3(end_position_setpoint_, &wrap_data);
 
     ros::Rate rate(LOOP_FREQUENCY);
 
-    while (ros::ok()) {
+    while (ros::ok())
+    {
         // std::cout << "end_position_setpoint_.pose.position.x: " << end_position_setpoint_.pose.position.x << std::endl;
         // std::cout << "end_position_setpoint_.pose.position.y: " << end_position_setpoint_.pose.position.y << std::endl;
         // std::cout << "end_position_setpoint_.pose.position.z: " << end_position_setpoint_.pose.position.z << std::endl;
         // start_planning_t_ = ros::Time::now();
 
-        switch (current_status_) {
-            case HOVER:
-                // printf("enter hover!!\n");
-                isAtSetpoint();
-                c1.loadLatestData();
-                if (!wrap_data.rc_state) {
-                    c1.reset_error_sum_both_pv();
-                    // ROS_INFO("RESET I");
+        switch (current_status_)
+        {
+        case HOVER:
+            // printf("enter hover!!\n");
+            isAtSetpoint();
+            c1.loadLatestData();
+            if (!wrap_data.rc_state)
+            {
+                c1.reset_error_sum_both_pv();
+                // ROS_INFO("RESET I");
+            }
+            c1.positionControlFeedback();
+            c1.velocityControlFeedback();
+            // c1.postition_attitudeControlFeedback();
+
+            start_planning_t_ = ros::Time::now();
+            break;
+
+        case READY:
+            printf("enter ready!!\n");
+            if (ready_flag)
+                current_status_ = PLANNING;
+            c1.loadLatestData();
+
+            c1.positionControlFeedback();
+            c1.velocityControlFeedback();
+            // c1.postition_attitudeControlFeedback();
+
+            start_planning_t_ = ros::Time::now();
+            //            m_Publisher.wrapper_local_pos_pub_.publish(wrap_data.pub_setpoint_position_);
+            break;
+
+        case PLANNING:
+            if (planning_flag)
+            {
+                for (int i = 0; i < 5; i++)
+                {
+                    c2.thrust_ave_ += wrap_data.thrust_eval[i] / 5;
                 }
-                c1.positionControlFeedback();
-                c1.velocityControlFeedback();
-			    // c1.postition_attitudeControlFeedback();
+                c2.replan_delta_time = ros::Time::now();
+                planning_flag = 0;
+                c2.ff_cmd.is_done = false;
+            }
+            ros::spinOnce();
+            c2.current_time_ = (ros::Time::now() - start_planning_t_).toSec();
+            c2.loadFeedforwardData();
+            c2.loadLatestData();
+            c2.MPCControl();
+            if (c2.ff_cmd.is_done)
+                current_status_ = END;
+            //      topicPublish();
+            m_Publisher.draw_fly_pub.publish(wrap_data.fly_path_point);
+            m_Publisher.draw_ref_pub.publish(wrap_data.ref_path_point);
+            break;
 
-			    start_planning_t_ = ros::Time::now();
-                break;
-
-            case READY:
-                printf("enter ready!!\n");
-                if (ready_flag) current_status_ = PLANNING;
-                c1.loadLatestData();
-
-                c1.positionControlFeedback();
-                c1.velocityControlFeedback();
-                // c1.postition_attitudeControlFeedback();
-
-                start_planning_t_ = ros::Time::now();
-//            m_Publisher.wrapper_local_pos_pub_.publish(wrap_data.pub_setpoint_position_);
-                break;
-
-
-            case PLANNING:
-                if (planning_flag) {
-                    for (int i = 0; i < 5; i++) {
-                        c2.thrust_ave_ += wrap_data.thrust_eval[i] / 5;
-                    }
-                    c2.replan_delta_time = ros::Time::now();
-                    planning_flag = 0;
-                    c2.ff_cmd.is_done = false;
-                }
-                ros::spinOnce();
-                c2.current_time_ = (ros::Time::now() - start_planning_t_).toSec();
-                c2.loadFeedforwardData();
-                c2.loadLatestData();
-                c2.MPCControl();
-                if (c2.ff_cmd.is_done)
-                    current_status_ = END;
-//      topicPublish();
-                m_Publisher.draw_fly_pub.publish(wrap_data.fly_path_point);
-                m_Publisher.draw_ref_pub.publish(wrap_data.ref_path_point);
-                break;
-
-            case END:
-                printf("aggressive flight is done!!\n");
-                c3.loadLatestData();
-                c3.positionControlFeedback();
-                c3.velocityControlFeedback();
-//            m_Publisher.wrapper_local_pos_pub_.publish(wrap_data.pub_setpoint_position_);
-                break;
+        case END:
+            printf("aggressive flight is done!!\n");
+            c3.loadLatestData();
+            c3.positionControlFeedback();
+            c3.velocityControlFeedback();
+            //            m_Publisher.wrapper_local_pos_pub_.publish(wrap_data.pub_setpoint_position_);
+            break;
         }
 
         topicPublish();

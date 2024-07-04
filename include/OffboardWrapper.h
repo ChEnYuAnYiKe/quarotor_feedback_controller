@@ -59,6 +59,7 @@ public:
         ros::Subscriber wrapper_attitude_sub_;
         ros::Subscriber wrapper_position_filtered_sub_;
         ros::Subscriber wrapper_velocity_filtered_sub_;
+        ros::Subscriber wrapper_lidar_vz_sub_;
         
     } m_Subscriber;
 
@@ -116,6 +117,8 @@ public:
     void velocityfilteredCallback(const geometry_msgs::TwistStamped::ConstPtr &msg);
 
     void positionfilteredCallback(const geometry_msgs::PoseStamped::ConstPtr &msg);
+
+    void lidarVzCallback(const geometry_msgs::PoseStamped::ConstPtr &msg);
 
     void accCallback(const geometry_msgs::TwistStamped::ConstPtr &msg);
 
