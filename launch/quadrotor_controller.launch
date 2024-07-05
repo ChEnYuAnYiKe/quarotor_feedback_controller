@@ -2,19 +2,19 @@
 
     <!-- <include file="$(find vrpn_client_ros)/launch/sample.launch" /> -->
     <!-- <include file="$(find mavros)/launch/px4.launch" /> -->
-    <param name="position1_x" type="double" value="3"/>
-    <param name="position1_y" type="double" value="3"/>
+    <param name="position1_x" type="double" value="0"/>
+    <param name="position1_y" type="double" value="0"/>
     <param name="position1_z" type="double" value="1.3"/>
-    <param name="position2_x" type="double" value="3"/>
-    <param name="position2_y" type="double" value="3"/>
+    <param name="position2_x" type="double" value="0"/>
+    <param name="position2_y" type="double" value="0"/>
     <param name="position2_z" type="double" value="1.1"/>
 
     <param name="kp_hover_x" type="double" value="0.85"/>
     <param name="kp_hover_y" type="double" value="0.85"/>
-    <param name="kp_hover_z" type="double" value="1.0"/>
+    <param name="kp_hover_z" type="double" value="0.9"/>
     <param name="ki_hover_x" type="double" value="0.015"/>
     <param name="ki_hover_y" type="double" value="0.015"/>
-    <param name="ki_hover_z" type="double" value="0.02"/>
+    <param name="ki_hover_z" type="double" value="0.015"/>
     <param name="kd_hover_x" type="double" value="0.42"/>
     <param name="kd_hover_y" type="double" value="0.45"/>
     <param name="kd_hover_z" type="double" value="0."/>
