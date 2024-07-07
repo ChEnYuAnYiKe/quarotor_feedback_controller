@@ -189,8 +189,9 @@ void OffboardWrapper::subscriber() {
 	m_Subscriber.wrapper_state_sub_ = nh.subscribe<mavros_msgs::State>(
 	    uav_id + "/mavros/state", 10, &OffboardWrapper::stateCallback, this);
 	// in uwb-position
-	m_Subscriber.wrapper_attitude_sub_ = nh.subscribe<sensor_msgs::Imu>(
-	    "/mavros/imu/data", 10, &OffboardWrapper::attitudeCallback, this);
+	// m_Subscriber.wrapper_attitude_sub_ = nh.subscribe<sensor_msgs::Imu>("/mavros/imu/data", 10, &OffboardWrapper::attitudeCallback, this);
+	m_Subscriber.wrapper_attitude_sub_ = nh.subscribe<sensor_msgs::Imu>("/imu", 10, &OffboardWrapper::attitudeCallback, this);
+
 	m_Subscriber.wrapper_position_filtered_sub_ =
 	    nh.subscribe<geometry_msgs::PoseStamped>(
 	        "/position_filter", 10, &OffboardWrapper::positionfilteredCallback,
@@ -373,7 +374,7 @@ void OffboardWrapper::visualCallback(
 	    wrapper_current_vrpn_.pose.orientation.w;
 	tf::Matrix3x3(rq).getRPY(current_attitude_store1[0],
 	                         current_attitude_store1[1],
-	                         wrap_data.wrapper_current_attitude_[2]);
+	                         current_attitude_store1[2]);
 
 	// geometry_msgs::PoseStamped wrapper_vision_pos_ = wrapper_current_vrpn_;
 	// wrapper_vision_pos_.header.stamp = ros::Time::now();
@@ -417,7 +418,7 @@ void OffboardWrapper::attitudeCallback(const sensor_msgs::Imu::ConstPtr& msg) {
 	// current_imu_status.orientation.w; 坐标变换
 	tf::Matrix3x3(iq).getRPY(wrap_data.wrapper_current_attitude_[0],
 	                         wrap_data.wrapper_current_attitude_[1],
-	                         current_attitude_store2[2]);
+	                         wrap_data.wrapper_current_attitude_[2]);
 }
 
 void OffboardWrapper::accCallback(
