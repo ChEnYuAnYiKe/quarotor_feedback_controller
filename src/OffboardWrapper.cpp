@@ -419,6 +419,8 @@ void OffboardWrapper::attitudeCallback(const sensor_msgs::Imu::ConstPtr& msg) {
 	tf::Matrix3x3(iq).getRPY(wrap_data.wrapper_current_attitude_[0],
 	                         wrap_data.wrapper_current_attitude_[1],
 	                         wrap_data.wrapper_current_attitude_[2]);
+
+	wrap_data.wrapper_current_attitude_[1] = -wrap_data.wrapper_current_attitude_[1];
 }
 
 void OffboardWrapper::accCallback(
